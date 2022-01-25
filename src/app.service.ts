@@ -6,11 +6,11 @@ import { PrismaService } from './prisma.service';
 export class AppService {
   constructor(private prisma: PrismaService) {}
 
-  getAll() {
-    return this.prisma.todo.findMany();
+  async getAll() {
+    return await this.prisma.todo.findMany();
   }
 
-  posts(params: {
+  async filterTodo(params: {
     skip?: number;
     take?: number;
     cursor?: Prisma.TodoWhereUniqueInput;
@@ -18,7 +18,7 @@ export class AppService {
     orderBy?: Prisma.TodoOrderByWithRelationInput;
   }) {
     const { skip, take, cursor, where, orderBy } = params;
-    return this.prisma.todo.findMany({
+    return await this.prisma.todo.findMany({
       skip,
       take,
       cursor,
@@ -27,24 +27,42 @@ export class AppService {
     });
   }
 
-  getOne(todoFind: Prisma.TodoWhereUniqueInput) {
-    return this.prisma.todo.findUnique({ where: todoFind });
+  async getOne(todoFind: Prisma.TodoWhereUniqueInput) {
+    const data = await this.prisma.todo.findUnique({ where: todoFind });
+
+    if (!data) {
+      return { msg: 'not found' };
+    }
+
+    return data;
   }
 
-  create(createTodo: Prisma.TodoCreateInput) {
-    return this.prisma.todo.create({
+  async create(createTodo: Prisma.TodoCreateInput) {
+    return await this.prisma.todo.create({
       data: createTodo,
     });
   }
 
-  update(where: Prisma.TodoWhereUniqueInput, data: Prisma.TodoUpdateInput) {
-    return this.prisma.todo.update({
+  async update(
+    where: Prisma.TodoWhereUniqueInput,
+    data: Prisma.TodoUpdateInput,
+  ) {
+    const updateData = await this.prisma.todo.update({
       data,
       where,
     });
+
+    if (!updateData) {
+      return {
+        msg: 'not updated',
+      };
+    }
+
+    return updateData;
   }
 
-  delete(idDelete: Prisma.TodoWhereUniqueInput) {
-    return this.prisma.todo.deleteMany({ where: idDelete });
+  async delete(idDelete: Prisma.TodoWhereUniqueInput) {
+    const deletData = await this.prisma.todo.delete({ where: idDelete });
+    return { msg: 'delete successfully', deletData: deletData };
   }
 }

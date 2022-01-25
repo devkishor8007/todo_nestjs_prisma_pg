@@ -7,10 +7,17 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { AppService } from './app.service';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import { CreateTodoDoto, UpdateTodoDto } from './Dto/createDto';
 
+@ApiTags('todo')
 @Controller('todo')
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -19,18 +26,19 @@ export class AppController {
   @ApiOkResponse({
     description: 'Get All ToDo',
   })
-  getTodo() {
-    return this.appService.getAll();
+  async getTodo() {
+    return await this.appService.getAll();
   }
 
   @Get(':id')
-  getTodoById(@Param('id') id: string) {
-    return this.appService.getOne({ id: +id });
+  @ApiParam({ name: 'id', description: 'Get The Action By Id' })
+  async getTodoById(@Param('id') id: string) {
+    return await this.appService.getOne({ id: +id });
   }
 
   @Get('filtered-todo/:searchString')
-  getFilteredPosts(@Param('searchString') searchString: string) {
-    return this.appService.posts({
+  async getFilteredPosts(@Param('searchString') searchString: string) {
+    return await this.appService.filterTodo({
       where: {
         OR: [
           {
@@ -45,21 +53,19 @@ export class AppController {
   }
 
   @Post()
+  @ApiBody({ type: CreateTodoDoto })
   @ApiCreatedResponse({ description: 'Add Todo' })
-  createTodo(@Body() createTodo: Prisma.TodoCreateInput) {
-    return this.appService.create(createTodo);
+  async createTodo(@Body() createTodo: CreateTodoDoto) {
+    return await this.appService.create(createTodo);
   }
 
   @Patch(':id')
-  updateTodo(
-    @Param('id') id: string,
-    @Body() updateTodo: Prisma.TodoUpdateInput,
-  ) {
-    return this.appService.update({ id: +id }, updateTodo);
+  async updateTodo(@Param('id') id: string, @Body() updateTodo: UpdateTodoDto) {
+    return await this.appService.update({ id: Number(id) }, updateTodo);
   }
 
   @Delete(':id')
-  deleteTodo(@Param('id') id: string) {
-    return this.appService.delete({ id: +id });
+  async deleteTodo(@Param('id') id: string) {
+    return await this.appService.delete({ id: +id });
   }
 }
